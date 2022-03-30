@@ -36,3 +36,93 @@ gl.clearColor(0.0, 1.0, 0.0, 1.0);
 // when using a single one is a bitwise operation
 gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 console.log(gl);
+
+// writing 2 shaders 
+// - vertex shader 
+// - fragment shader 
+
+// To write the shaders we're going to use a language 
+// called GLSL - gl shading language
+// HLSL - Direct3D (DirectX)
+// CG - we're going to use this one in Unity
+
+// shaders on OpenGL are interpreted
+// on Vulkan shaders are compiled 
+
+// version of the OpenGL ES API level we're using 
+// precision can be - lowp, mediump, highp
+// in - variable that will be received from the outside 
+
+// how many times do you think this guy runs?
+// once per vertex 
+var vertexShader = `#version 300 es
+precision mediump float; 
+in vec2 pos; 
+void main() {
+    // a comment in GLSL
+    // hi!
+    // objective of a vertexShader - set gl_Position
+    gl_Position = vec4(pos.x, pos.y, 0.0, 1.0); // vec4 - 4 values that represent location
+}`;
+
+// how many times does this guy runs?
+// once per fragment
+var fragmentShader = `#version 300 es
+precision mediump float;
+out vec4 col;
+void main() {
+    col = vec4(1.0, 0.0, 0.0, 1.0); // 4 values that are colors - r, g, b, a
+}`;
+
+// we still have a bunch to do - once everything here is done we can reuse
+// we need to actually transform source code into program (shaders)
+
+var vs = gl.createShader(gl.VERTEX_SHADER);
+var fs = gl.createShader(gl.FRAGMENT_SHADER);
+gl.shaderSource(vs, vertexShader);
+gl.shaderSource(fs, fragmentShader);
+gl.compileShader(vs);
+gl.compileShader(fs);
+
+// after the compilation check for errors
+if(!gl.getShaderParameter(vs, gl.COMPILE_STATUS)){
+    console.error(gl.getShaderInfoLog(vs));
+}
+
+if(!gl.getShaderParameter(fs, gl.COMPILE_STATUS)){
+    console.error(gl.getShaderInfoLog(fs));
+}
+
+// create a program to attach our shaders to
+var program = gl.createProgram();
+gl.attachShader(program, vs);
+gl.attachShader(program, fs);
+gl.linkProgram(program); // you, context, are going to be using that set of shaders
+
+if(!gl.getProgramParameter(program, gl.LINK_STATUS)){
+    console.error(gl.getProgramInfoLog(program));
+}
+
+// buffer creation 
+// buffer - space in memory in which we store useful information for the render process
+
+// we now load data into buffer
+// use buffer as a source for vertices 
+// allocates memory on GPU 
+var buffer = gl.createBuffer();
+
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/bindBuffer
+// bind buffer with channel 
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+// put some info on the buffer itself
+// that something are the vertices to be drawn
+// declare an array of values for your vertices
+// current screen space goes from [-1, 1] in both x and y 
+var triangleCoords = [-1.0, -1.0, 0.0, 1.0, 1.0, -1.0];
+
+// use channel to send data 
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleCoords), gl.STATIC_DRAW);
+
+// close channel - deallocate, empty the memory used
+gl.bindBuffer(gl.ARRAY_BUFFER, null);
