@@ -63,6 +63,7 @@ void main() {
     // hi!
     // objective of a vertexShader - set gl_Position
     gl_Position = vec4(pos.x, pos.y, 0.0, 1.0); // vec4 - 4 values that represent location
+    gl_PointSize = 5.0;
 }`;
 
 // how many times does this guy runs?
@@ -126,3 +127,28 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleCoords), gl.STATIC_DRAW)
 
 // close channel - deallocate, empty the memory used
 gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+// link GPU var with CPU 
+gl.useProgram(program);
+
+// retrieve a reference to the parameter within the shaders
+var position = gl.getAttribLocation(program, 'pos');
+
+// enable data reception for parameter
+gl.enableVertexAttribArray(position); 
+
+// bind buffer again to send data
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/vertexAttribPointer
+// this is where the magic happens
+// 1 - variable to which we are sending data
+// 2 - how many dimensions are we using to describe the position within the vertices
+// 3 - data type of the values being sent
+// 4 - normalized or not
+// 5 - stride and offset - check them later
+gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+// actually draw the triangle 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/drawArrays
+gl.drawArrays(gl.TRIANGLES, 0, 3);
