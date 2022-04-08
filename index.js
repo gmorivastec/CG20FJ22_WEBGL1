@@ -1,3 +1,6 @@
+var diameter = 1.20;
+var segments = 100.0;
+
 // 1 - retrieve a reference to the canvas
 // DOM objects (search later if you wish)
 
@@ -27,7 +30,7 @@ var gl = canvas.getContext("webgl2");
 // a - alpha 
 // [0, 1]
 
-gl.clearColor(0.0, 1.0, 0.0, 1.0);
+gl.clearColor(1.0, 1.0, 1.0, 1.0);
 
 // clear - clean buffers from previous data
 // we need to specify the buffers to clear
@@ -72,7 +75,7 @@ var fragmentShader = `#version 300 es
 precision mediump float;
 out vec4 col;
 void main() {
-    col = vec4(1.0, 0.0, 0.0, 1.0); // 4 values that are colors - r, g, b, a
+    col = vec4(1.0, 0.0, 1.0, 1.0); // 4 values that are colors - r, g, b, a
 }`;
 
 // we still have a bunch to do - once everything here is done we can reuse
@@ -120,7 +123,32 @@ gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 // that something are the vertices to be drawn
 // declare an array of values for your vertices
 // current screen space goes from [-1, 1] in both x and y 
-var triangleCoords = [-1.0, -1.0, 0.0, 1.0, 1.0, -1.0];
+/*
+var triangleCoords =   [-0.5, -0.5, 
+                        0.5, -0.5,
+                        0.75, 0.0,
+                        0.0, 0.5,
+                        -0.75, 0.0];
+
+
+*/
+var firstX = 0;
+var firstY = -1 * diameter / 2;
+var angle = Math.PI * 2 / segments;
+
+var triangleCoords = [firstX, firstY];
+
+// what you should've done here was calculate the coordinates
+// https://matthew-brett.github.io/teaching/rotation_2d.html
+
+
+for(let i = 1; i < segments; i++){
+
+    // x2 = cosβx1−sinβy1
+    triangleCoords.push(Math.cos(angle * i) * firstX - Math.sin(angle * i) * firstY);
+    // y2 = sinβx1+cosβy1
+    triangleCoords.push(Math.sin(angle * i) * firstX + Math.cos(angle * i) * firstY);
+}
 
 // use channel to send data 
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleCoords), gl.STATIC_DRAW);
@@ -151,4 +179,4 @@ gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
 // actually draw the triangle 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/drawArrays
-gl.drawArrays(gl.TRIANGLES, 0, 3);
+gl.drawArrays(gl.TRIANGLE_FAN, 0, segments);
